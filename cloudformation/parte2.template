@@ -1,0 +1,302 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Metadata": {
+    "AWS::CloudFormation::Designer": {
+      "ef179efb-2baa-49d9-9d75-3d3fc6f33d4c": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 200,
+          "y": 120
+        },
+        "z": 1,
+        "embeds": []
+      }
+    }
+  },
+  "Resources": {
+            "MyVPC": {
+              "Type": "AWS::EC2::VPC",
+              "Properties": {
+                "CidrBlock": "172.32.0.0/16",
+                "EnableDnsHostnames" : true
+
+              },
+              "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                  "id": "ef179efb-2baa-49d9-9d75-3d3fc6f33d4c"
+                }
+              }
+            },
+
+            "MyIGW": {
+              "Type": "AWS::EC2::InternetGateway",
+              "Properties": {},
+              "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                  "id": "6ddcb8fa-c2b5-45c1-81ac-d9e14a63bb2d"
+                }
+              }
+            },
+
+            "MyIGWAttachment" : 
+            {
+               "Type" : "AWS::EC2::VPCGatewayAttachment",
+               "Properties" : {
+                  "InternetGatewayId" : { "Ref" : "MyIGW" },
+                  "VpcId" : { "Ref" : "MyVPC" }
+                  
+               }
+            },
+
+            "public1": {
+              "Type": "AWS::EC2::Subnet",
+              "Properties": {
+                  "VpcId": { "Ref": "MyVPC"} ,
+                  "MapPublicIpOnLaunch" : true,
+                  "AvailabilityZone" : "eu-central-1a",
+                  "CidrBlock" : "172.32.20.0/24"
+                  }
+                
+              },
+
+              "RouteTablePublic1": {
+                      "Type": "AWS::EC2::RouteTable",
+                      "Properties": {
+                        "VpcId" : { "Ref" : "MyVPC" }
+                      },
+                      "Metadata": {
+                        "AWS::CloudFormation::Designer": {
+                          "id": "b79d18c4-4ad2-41d3-9c54-5169313b4c4e"
+                        }
+                      }
+                  },
+
+              "routePublic1route1": {
+                      "Type": "AWS::EC2::Route",
+                      "Properties": {
+                        "DestinationCidrBlock" : "0.0.0.0/0",
+                        "GatewayId" : { "Ref" : "MyIGW" },
+                        "RouteTableId": {"Ref": "RouteTablePublic1"}
+                    }
+              },
+              "public1RouteAssociation": {
+                 "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+                 "Properties" : {
+                    "RouteTableId" : { "Ref" : "RouteTablePublic1" },
+                    "SubnetId" : { "Ref" : "public1" }
+                  }  
+              },
+            
+             "public2": {
+                "Type": "AWS::EC2::Subnet",
+                "Properties": {
+                  "VpcId": { "Ref": "MyVPC"},
+                  "MapPublicIpOnLaunch" : true,          
+                  "AvailabilityZone" : "eu-central-1b",
+                  "CidrBlock" : "172.32.30.0/24"
+                } 
+              },
+
+              "RouteTablePublic2": {
+                      "Type": "AWS::EC2::RouteTable",
+                      "Properties": {
+                        "VpcId" : { "Ref" : "MyVPC" }
+                      }
+                  },
+
+              "routePublic2route1": {
+                      "Type": "AWS::EC2::Route",
+                      "Properties": {
+                        "DestinationCidrBlock" : "0.0.0.0/0",
+                        "GatewayId" : { "Ref" : "MyIGW" },
+                        "RouteTableId": {"Ref": "RouteTablePublic2"}
+                    }
+              },
+              "public2RouteAssociation": {
+                 "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+                 "Properties" : {
+                    "RouteTableId" : { "Ref" : "RouteTablePublic2" },
+                    "SubnetId" : { "Ref" : "public2" }
+                  }  
+              },      
+
+
+
+              "private": {
+                "Type": "AWS::EC2::Subnet",
+                "Properties": {
+                  
+                  "VpcId": { "Ref": "MyVPC"} ,
+                  "CidrBlock" : "172.32.40.0/24"
+
+                  }
+              },
+
+              "SecurityGroupHttpForLoadBalancer": {
+                "Type": "AWS::EC2::SecurityGroup",
+                "Properties": {
+                  "GroupDescription": "Allows Traffic to port 80 from anywhere in the world",
+                  "SecurityGroupIngress" : [{
+                    "IpProtocol" : "tcp",
+                    "FromPort" : "80",
+                    "ToPort" : "80",
+                    "CidrIp" : "0.0.0.0/0"
+                 }],
+                  "VpcId": { "Ref": "MyVPC"}
+                }
+              },
+
+              "SecurityGroupHttpFromLoadBalancing": {
+                "Type": "AWS::EC2::SecurityGroup",
+                "Properties": {
+                  "GroupDescription": "Allows Traffic to port 80 from LoadBalancing",
+                  "SecurityGroupIngress" : [{
+                    "IpProtocol" : "tcp",
+                    "FromPort" : "80",
+                    "ToPort" : "80",
+                    "SourceSecurityGroupId" : {"Ref" : "SecurityGroupHttpForLoadBalancer"}
+                 }],
+                  "VpcId": { "Ref": "MyVPC"}
+                }
+              },
+
+
+
+              "SecurityGroupSshFromAnywhere": {
+                "Type": "AWS::EC2::SecurityGroup",
+                "Properties": {
+                  "GroupDescription": "Allows Traffic to port 22 (ssh) from anywhere",
+                  "SecurityGroupIngress" : [{
+                    "IpProtocol" : "tcp",
+                    "FromPort" : "22",
+                    "ToPort" : "22",
+                    "CidrIp" : "0.0.0.0/0"
+                 }],
+                  "VpcId": { "Ref": "MyVPC"}
+                }
+              },
+
+
+              "SecurityGroupMysqlFromMyVPC": {
+                "Type": "AWS::EC2::SecurityGroup",
+                "Properties": {
+                  "GroupDescription": "Allows Traffic to port 3306 (MySQL) from MyVPC ",
+                  "SecurityGroupIngress" : [{
+                    "IpProtocol" : "tcp",
+                    "FromPort" : "3306",
+                    "ToPort" : "3306",
+                    "CidrIp" : { "Fn::GetAtt" : ["MyVPC", "CidrBlock"]}
+
+                 }],
+                  "VpcId": { "Ref": "MyVPC"}
+                }
+              },
+
+
+              "TinyProxyInternal": {
+                "Type": "AWS::EC2::SecurityGroup",
+                "Properties": {
+                  "GroupDescription": "Allows Traffic to port 8888 (TinyProxy) from MyVPC ",
+                  "SecurityGroupIngress" : [{
+                    "IpProtocol" : "tcp",
+                    "FromPort" : "8888",
+                    "ToPort" : "8888",
+                    "CidrIp" : { "Fn::GetAtt" : ["MyVPC", "CidrBlock"]}
+
+                 }],
+                  "VpcId": { "Ref": "MyVPC"}
+                }
+              },
+
+
+
+
+              "BastionServer": 
+              {
+               "Type" : "AWS::EC2::Instance",
+               "Properties" : {
+                  "ImageId" : "ami-87564feb",
+                  "InstanceType" : "t2.micro",
+                  "KeyName" : "default-frankfurt",
+                  "SecurityGroupIds" : [ {"Ref": "SecurityGroupSshFromAnywhere" }, {"Ref": "TinyProxyInternal" }   ],
+                  "SubnetId" : {"Ref": "public1"},
+                  "Tags": [ {"Key" : "Name","Value" : "Ubuntu-Bastion"}   ] ,
+                  "PrivateIpAddress" : "172.32.20.10",
+                  "UserData" : "IyEvYmluL2Jhc2gNCnN1ZG8gYXB0LWdldCBpbnN0YWxsIHRpbnlwcm94eQ0KbG9jYWxpcD0kKCBjdXJsIC1zIGh0dHA6Ly8xNjkuMjU0LjE2OS4yNTQvbGF0ZXN0L21ldGEtZGF0YS9sb2NhbC1pcHY0ICkNCmVjaG8gIkxpc3RlbiAkbG9jYWxpcCIgPj4gL2V0Yy90aW55cHJveHkuY29uZg0KZWNobyAiQWxsb3cgMTcyLjMyLjAuMC8xNiIgPj4gL2V0Yy90aW55cHJveHkuY29uZg0KL2V0Yy9pbml0LmQvdGlueXByb3h5IHJlc3RhcnQNCg=="
+                  
+                }
+              },
+
+
+              "Database1": 
+              {
+               "Type" : "AWS::EC2::Instance",
+               "Properties" : {
+                  "ImageId" : "ami-d3c022bc",
+                  "InstanceType" : "t2.micro",
+                  "KeyName" : "default-frankfurt",
+                  "SecurityGroupIds" : [ {"Ref": "SecurityGroupSshFromAnywhere" }, {"Ref": "SecurityGroupMysqlFromMyVPC" }   ],
+                  "SubnetId" : {"Ref": "private"},
+                  "Tags": [ {"Key" : "Name","Value" : "Database1"}   ] ,
+                  "PrivateIpAddress" : "172.32.40.20",
+                  "UserData" : "IyEvYmluL2Jhc2gNCmV4cG9ydCBodHRwX3Byb3h5PWh0dHA6Ly8xNzIuMzIuMjAuMTA6ODg4OA0KeXVtIHVwZGF0ZSAteQ0KeXVtIGluc3RhbGwgLXkgbXlzcWw1NS1zZXJ2ZXIgDQpzZXJ2aWNlIG15c3FsZCBzdGFydA0KY2hrY29uZmlnIG15c3FsZCBvbg0KDQpteXNxbCAtZSAiY3JlYXRlIGRhdGFiYXNlIHdvcmRwcmVzczsiDQpteXNxbCAtZSAiZ3JhbnQgYWxsIG9uIHdvcmRwcmVzcy4qIHRvICd3b3JkcHJlc3MnQCcxNzIuMzIuJS4lJyBpZGVudGlmaWVkIGJ5ICd3b3JkcHJlc3MnOyI="
+                  
+               }
+            },
+
+
+              "webServerTest": 
+              {
+               "Type" : "AWS::EC2::Instance",
+               "Properties" : {
+                  "ImageId" : "ami-d3c022bc",
+                  "InstanceType" : "t2.micro",
+                  "KeyName" : "default-frankfurt",
+                  "SecurityGroupIds" : [ {"Ref": "SecurityGroupSshFromAnywhere" }, {"Ref": "SecurityGroupHttpFromLoadBalancing" }   ],
+                  "SubnetId" : {"Ref": "public1"},
+                  "Tags": [ {"Key" : "Name","Value" : "webServerTest"}   ] ,
+
+                  "UserData" : "IyEvYmluL2Jhc2gNCnl1bSB1cGRhdGUgLXkNCnl1bSBpbnN0YWxsIC15IGh0dHBkMjQgcGhwNTYgIHBocDU2LW15c3FsbmQNCnNlcnZpY2UgaHR0cGQgc3RhcnQNCmNoa2NvbmZpZyBodHRwZCBvbg0KZ3JvdXBhZGQgd3d3DQp1c2VybW9kIC1hIC1HIHd3dyBlYzItdXNlcg0KY2hvd24gLVIgcm9vdDp3d3cgL3Zhci93d3cNCmNobW9kIDI3NzUgL3Zhci93d3cNCg0KY2QgL3Zhci93d3cvaHRtbA0Kd2dldCBodHRwczovL3dvcmRwcmVzcy5vcmcvbGF0ZXN0LnRhci5neiANCnRhciB4emYgbGF0ZXN0LnRhci5neg0KbXYgd29yZHByZXNzLyogLg0Kcm0gLXJmIGxhdGVzdC50YXIuZ3ogd29yZHByZXNzIA0KDQpjaG93biAtUiBhcGFjaGU6d3d3IC92YXIvd3d3DQpmaW5kIC92YXIvd3d3IC10eXBlIGQgLWV4ZWMgY2htb2QgMjc3NSB7fSArDQpmaW5kIC92YXIvd3d3IC10eXBlIGYgLWV4ZWMgY2htb2QgMDc3NCB7fSArDQojZWNobyAiPD9waHAgcGhwaW5mbygpOyA/PiIgPiAvdmFyL3d3dy9odG1sL3BocGluZm8ucGhwDQo="
+                  
+               }
+            },
+
+
+
+            "MyELB":
+            {
+               "Type": "AWS::ElasticLoadBalancing::LoadBalancer",
+               "Properties": {
+                  "Instances" : [ {"Ref" : "webServerTest"} ],
+                  "LoadBalancerName" : "MyELB",
+                  "Listeners" : [ 
+                       {
+                         "InstancePort" : "80",
+                         "InstanceProtocol" : "HTTP",
+                         "LoadBalancerPort" : "80",
+                         "Protocol" : "HTTP"
+                      }
+                  ],
+                  "SecurityGroups" : [ {"Ref": "SecurityGroupHttpForLoadBalancer"} ],
+                  "Subnets" : [ {"Ref": "public1"}, {"Ref" : "public2"} ]
+               }
+           }
+
+  },
+
+  "Outputs" : {
+      "MyELBName" : {
+            "Description": "Name of the ELB",  
+            "Value" : { "Ref" : "MyELB" }
+      },
+      "MyElbUrl" : {
+            "Description": "Name of the ELB",  
+            "Value" : {"Fn::GetAtt" : [ "MyELB", "DNSName" ]}
+      }
+
+  }
+
+}
