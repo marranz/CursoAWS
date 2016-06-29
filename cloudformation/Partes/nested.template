@@ -1,0 +1,46 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+
+
+    "Parameters" : {
+      "KeyName":{
+          "Description": "Name of the key to use in the instances",
+          "Type": "AWS::EC2::KeyPair::KeyName"
+      }   
+
+    },
+
+
+    "Resources" : {
+        "parte1" : {
+  	       "Type" : "AWS::CloudFormation::Stack",
+	       "Properties" : {
+	           "TemplateURL" : "https://s3-us-west-1.amazonaws.com/miguel-arranz-test/cf/parte1"
+   	       }
+        },
+        "parte2" : {
+  	       "Type" : "AWS::CloudFormation::Stack",
+	         "Properties" : {
+             "TemplateURL" : "https://s3-us-west-1.amazonaws.com/miguel-arranz-test/cf/parte2",
+
+    		     "Parameters" : { 
+                  "MyVPC" : { "Fn::GetAtt" : [ "parte1", "Outputs.MyVPC" ] },
+                  "VPCCidrBlock" : { "Fn::GetAtt" : [ "parte1", "Outputs.VPCCidrBlock" ] },
+                  "private" : { "Fn::GetAtt" : [ "parte1", "Outputs.private" ] },
+                  "public1" : { "Fn::GetAtt" : [ "parte1", "Outputs.public1" ] },
+                  "public2" : { "Fn::GetAtt" : [ "parte1", "Outputs.public2" ] },
+                  "KeyName" : { "Ref" : "KeyName" }
+
+
+                }
+   	       }
+        }
+
+
+    }
+
+
+
+
+
+}

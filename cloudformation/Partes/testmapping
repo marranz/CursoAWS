@@ -1,0 +1,64 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+
+  "Mappings" : {
+    "ImageId" : {
+      "us-west-1" : { "Ubuntu" : "ami-06116566", "AmazonLinux" : "ami-31490d51" }
+    }
+  },
+  
+
+  "Parameters": {
+      "MyVPC":{
+          "Description": "id of the VPC",
+          "Type": "String",
+          "Default": "vpc-fc361499"
+      },
+      "public1":{
+          "Description": "id of the public1 subnet",
+          "Type": "String",
+          "Default": "subnet-8f3910d6"
+      },
+      "public2":{
+          "Description": "id of the public2 subnet",
+          "Type": "String",
+          "Default": "subnet-65a94b01"
+      },
+      "private":{
+          "Description": "id of the private subnet",
+          "Type": "String",
+          "Default": "subnet-66a94b02"
+      }, 
+      "KeyName":{
+          "Description": "Name of the key to use in the instances",
+          "Type": "AWS::EC2::KeyPair::KeyName"
+      },
+      "VPCCidrBlock" : {
+          "Description" : "Cidr block of the VPC. Will be used to allow access to the database",
+          "Type": "String"
+      }      
+  },  
+
+  "Resources" : {
+    "MyLaunchConfiguration": 
+    {
+       "Type" : "AWS::AutoScaling::LaunchConfiguration",
+       "Properties" : {
+          "ImageId" : { "Fn::FindInMap" : [ "ImageId", {"Ref" : "AWS::Region"} , "AmazonLinux"]},
+          "InstanceType" : "t2.micro",
+          "KeyName" : {"Ref" : "KeyName"},
+          "UserData" : "IyEvYmluL2Jhc2gNCnl1bSB1cGRhdGUgLXkNCnl1bSBpbnN0YWxsIC15IGh0dHBkMjQgcGhwNTYgIHBocDU2LW15c3FsbmQNCnNlcnZpY2UgaHR0cGQgc3RhcnQNCmNoa2NvbmZpZyBodHRwZCBvbg0KZ3JvdXBhZGQgd3d3DQp1c2VybW9kIC1hIC1HIHd3dyBlYzItdXNlcg0KY2hvd24gLVIgcm9vdDp3d3cgL3Zhci93d3cNCmNobW9kIDI3NzUgL3Zhci93d3cNCg0KY2QgL3Zhci93d3cvaHRtbA0Kd2dldCBodHRwczovL3dvcmRwcmVzcy5vcmcvbGF0ZXN0LnRhci5neiANCnRhciB4emYgbGF0ZXN0LnRhci5neg0KbXYgd29yZHByZXNzLyogLg0Kcm0gLXJmIGxhdGVzdC50YXIuZ3ogd29yZHByZXNzIA0KDQpjaG93biAtUiBhcGFjaGU6d3d3IC92YXIvd3d3DQpmaW5kIC92YXIvd3d3IC10eXBlIGQgLWV4ZWMgY2htb2QgMjc3NSB7fSArDQpmaW5kIC92YXIvd3d3IC10eXBlIGYgLWV4ZWMgY2htb2QgMDc3NCB7fSArDQojZWNobyAiPD9waHAgcGhwaW5mbygpOyA/PiIgPiAvdmFyL3d3dy9odG1sL3BocGluZm8ucGhwDQo="
+       }
+    }
+  },
+
+
+
+
+  "Outputs" : {
+
+
+  }
+
+}

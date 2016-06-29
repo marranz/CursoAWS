@@ -1,0 +1,168 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Metadata": {
+    "AWS::CloudFormation::Designer": {
+      "ef179efb-2baa-49d9-9d75-3d3fc6f33d4c": {
+        "size": {
+          "width": 150,
+          "height": 150
+        },
+        "position": {
+          "x": 200,
+          "y": 120
+        },
+        "z": 1,
+        "embeds": []
+      }
+    }
+  },
+  "Resources": {
+            "MyVPC": {
+              "Type": "AWS::EC2::VPC",
+              "Properties": {
+                "CidrBlock": "172.32.0.0/16",
+                "EnableDnsHostnames" : true
+
+              },
+              "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                  "id": "ef179efb-2baa-49d9-9d75-3d3fc6f33d4c"
+                }
+              }
+            },
+
+            "MyIGW": {
+              "Type": "AWS::EC2::InternetGateway",
+              "Properties": {},
+              "Metadata": {
+                "AWS::CloudFormation::Designer": {
+                  "id": "6ddcb8fa-c2b5-45c1-81ac-d9e14a63bb2d"
+                }
+              }
+            },
+
+            "MyIGWAttachment" : 
+            {
+               "Type" : "AWS::EC2::VPCGatewayAttachment",
+               "Properties" : {
+                  "InternetGatewayId" : { "Ref" : "MyIGW" },
+                  "VpcId" : { "Ref" : "MyVPC" }
+                  
+               }
+            },
+
+            "public1": {
+              "Type": "AWS::EC2::Subnet",
+              "Properties": {
+                  "VpcId": { "Ref": "MyVPC"} ,
+                  "MapPublicIpOnLaunch" : true,
+                  "AvailabilityZone" : "us-west-1a",
+                  "CidrBlock" : "172.32.20.0/24"
+                  }
+                
+              },
+
+              "RouteTablePublic1": {
+                      "Type": "AWS::EC2::RouteTable",
+                      "Properties": {
+                        "VpcId" : { "Ref" : "MyVPC" }
+                      },
+                      "Metadata": {
+                        "AWS::CloudFormation::Designer": {
+                          "id": "b79d18c4-4ad2-41d3-9c54-5169313b4c4e"
+                        }
+                      }
+                  },
+
+              "routePublic1route1": {
+                      "Type": "AWS::EC2::Route",
+                      "Properties": {
+                        "DestinationCidrBlock" : "0.0.0.0/0",
+                        "GatewayId" : { "Ref" : "MyIGW" },
+                        "RouteTableId": {"Ref": "RouteTablePublic1"}
+                    }
+              },
+              "public1RouteAssociation": {
+                 "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+                 "Properties" : {
+                    "RouteTableId" : { "Ref" : "RouteTablePublic1" },
+                    "SubnetId" : { "Ref" : "public1" }
+                  }  
+              },
+            
+             "public2": {
+                "Type": "AWS::EC2::Subnet",
+                "Properties": {
+                  "VpcId": { "Ref": "MyVPC"},
+                  "MapPublicIpOnLaunch" : true,          
+                  "AvailabilityZone" : "us-west-1b",
+                  "CidrBlock" : "172.32.30.0/24"
+                } 
+              },
+
+              "RouteTablePublic2": {
+                      "Type": "AWS::EC2::RouteTable",
+                      "Properties": {
+                        "VpcId" : { "Ref" : "MyVPC" }
+                      }
+                  },
+
+              "routePublic2route1": {
+                      "Type": "AWS::EC2::Route",
+                      "Properties": {
+                        "DestinationCidrBlock" : "0.0.0.0/0",
+                        "GatewayId" : { "Ref" : "MyIGW" },
+                        "RouteTableId": {"Ref": "RouteTablePublic2"}
+                    }
+              },
+              "public2RouteAssociation": {
+                 "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+                 "Properties" : {
+                    "RouteTableId" : { "Ref" : "RouteTablePublic2" },
+                    "SubnetId" : { "Ref" : "public2" }
+                  }  
+              },      
+
+
+
+              "private": {
+                "Type": "AWS::EC2::Subnet",
+                "Properties": {
+                  
+                  "VpcId": { "Ref": "MyVPC"} ,
+                  "CidrBlock" : "172.32.40.0/24"
+
+                  }
+              }
+
+
+  },
+
+   "Outputs" : {
+      "MyVPC" : {
+            "Description": "Name of the VPC",  
+            "Value" : { "Ref" : "MyVPC" }
+      },
+      "private" : {
+            "Description": "id of the private network",  
+            "Value" : { "Ref" : "private" }
+      },
+      "public1" : {
+            "Description": "id of the public1 network",  
+            "Value" : { "Ref" : "public1" }
+      },
+      "public2" : {
+            "Description": "id of the public2 network",  
+            "Value" : { "Ref" : "public2" }
+      },
+      "VPCCidrBlock" : {
+            "Description": "id of the public2 network",  
+            "Value" : {"Fn::GetAtt" : [ "MyVPC", "CidrBlock" ]}
+      }        
+
+
+    }
+
+
+
+}
